@@ -57,7 +57,7 @@ data.isnull().sum()
 #data['Time'] = scaler.fit_transform(data['Time'].values.reshape(-1, 1))
 
 
-# In[4]:
+# In[3]:
 
 
 # Features and target
@@ -65,7 +65,7 @@ X = data.drop(columns=['Class'])  # Features
 y = data['Class']  # Target (1: Fraud, 0: No Fraud)
 
 
-# In[5]:
+# In[24]:
 
 
 # Split the dataset into training and test sets
@@ -90,7 +90,7 @@ smote = SMOTE(sampling_strategy='minority', random_state=42)
 X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
 
 
-# In[6]:
+# In[25]:
 
 
 #Or balance the classes using RandomOverSampler
@@ -141,13 +141,12 @@ Image(filename = PATH + "CM.png", width=400, height=300)
 Image(filename = PATH + "PR_fraud_detection.png", width=400, height=300)
 
 
-# In[8]:
+# In[27]:
 
 
 # Initialize the XGBoost classifier
 model = XGBClassifier(scale_pos_weight=1,
-                          eval_metric='logloss',
-                          random_state=42)
+                          eval_metric='logloss')
 
 # Train the model
 model.fit(X_train_balanced, y_train_balanced)
@@ -163,6 +162,28 @@ model_prediction_result(model, X_test)
 import matplotlib.pyplot as plt
 plot_importance(model, importance_type='weight')
 plt.show()
+
+
+# In[11]:
+
+
+from sklearn.model_selection import StratifiedKFold
+
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+
+# In[15]:
+
+
+# K-fold Cross-Validation
+for train_index, test_index in kfold.split(X, y):
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    X_balanced, y_balanced  = ros.fit_resample(X_train, y_train)
+    model.fit(X_balanced, y_balanced)
+
+    # Call prediction method
+    model_prediction_result(model, X_test)
 
 
 # In[10]:
@@ -258,10 +279,4 @@ rf_model.fit(X_train, y_train)
 
 #model_prediction_result(rf_model, X_test_scaled)
 model_prediction_result(rf_model, X_test)
-
-
-# In[ ]:
-
-
-
 
